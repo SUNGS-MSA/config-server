@@ -1,0 +1,18 @@
+server:
+  port: ${service_port:9001}
+
+spring:
+  application:
+    name: config-server
+
+  cloud:
+    config:
+      server:        
+        git:
+          uri: https://${git_host:github.com}:${git_port:443}/${git_org:SUNGS-MSA}/${git_repo:configmng.git}
+          #username: ${git_id:happycloudpak}
+          #password: ${git_pw:passw0rd$}                            
+          search-paths: /*   #(중요) 설정파일을 찾는 곳, '공용설정 + 앱별디렉토리아래설정' 모두 찾으려면 '/*' 할 것
+          #basedir:  # git레파지토리의 base directory (디롤트는 루트 디렉토리)
+          default-label: ${git_branch:main}      #git branch
+        bootstrap: true  #config server에서 자체설정파일로드가 가능여부. (기본값 false). true여야 '${service_port:9001}' 형식이 표기가 인식이 된다. 안그러면 실제값을 그대로 설정해야함
