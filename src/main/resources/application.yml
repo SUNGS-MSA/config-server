@@ -1,3 +1,19 @@
+###################################################
+## Config Server에서는 git레파지토리의 설정을 가져올 수 없다 (개별 앱은 Config Server를 통해 git레파지토리 설정을 가져오지만)
+## - 따라서 Config Server의 경우의 설정은 직접 모두 설정을 작성해야 한다. config server가 config server를 호출하여 정보를 가져올 수 없기때문이다. 
+####################################################
+
+#Actuator 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*" #refresh  #refresh는 config server 로부터 설정을 다시 받아오는 endpoint 이다.
+        #● 노출된 전체 엔드포인트조회 :  
+        #  - 웹브라우저에  http://앱호스트명/actuator  (GET방식) 호출하면 해당앱에 노출된 모든 엔드포인트 리스트가 출력된다. 
+        #    ex) http://localhost:8081/actuator (주의 /actuator/ 으로 뒤에 슬래시 '/' 붙이면 에러발생)   
+        #● 특정엔드포인트 조회 : url로 호출시는 반드시 post방식으로 만 가능하다. ex) curl -X POST http://localhost:8081/actuator/refresh
+
 server:
   port: ${service_port:9001}
 
@@ -5,6 +21,10 @@ spring:
   application:
     name: config-server
 
+  profiles:
+    active: ${profile:local}
+    
+    
   cloud:
     config:
       server:        
@@ -15,4 +35,25 @@ spring:
           search-paths: /*   #(중요) 설정파일을 찾는 곳, '공용설정 + 앱별디렉토리아래설정' 모두 찾으려면 '/*' 할 것
           #basedir:  # git레파지토리의 base directory (디롤트는 루트 디렉토리)
           default-label: ${git_branch:main}      #git branch
-        bootstrap: true  #config server에서 자체설정파일로드가 가능여부. (기본값 false). true여야 '${service_port:9001}' 형식이 표기가 인식이 된다. 안그러면 실제값을 그대로 설정해야함
+          #skip-ssl-validation: true  #https접속시 ssl검증을 하는데, 이때 skip하려면 true로 한다. (디폴트 false)
+        #bootstrap: true  #git레파지토리에서 config server 자체설정을 가져오고싶을때. (기본값 false).  '${service_port:9001}' 형식이 표기는 클라우드 docker같은데서 환경변수를 활용한다는으미
+        
+
+             
+        
+  #mq 접속정보
+  rabbitmq:
+    host: ${mq_host:192.168.56.20}
+    port: ${mq_port:5672}
+    username: ${mq_id:guest}
+    password: ${mq_pw:guest}
+      
+
+eureka:
+  client:  # eureka clinet로서 정보 
+    register-with-eureka: true #시작시 eureka서버에 자신을 등록 
+    fetch-registry: true  #로컬에 유레카서버의 레지스트리 정보를 가져와 캐시를 저장할지 여부
+    service-url:  #유레카서버 주소
+      defaultZone: ${eureka_servers:http://peer1.127.0.0.1.nip.io:9011/eureka,http://peer2.127.0.0.1.nip.io:9012/eureka}
+           
+       
